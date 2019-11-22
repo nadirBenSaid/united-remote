@@ -1,4 +1,4 @@
 node_modules/
-models/
-controllers/
+models/user.js
+routers/user-controller.js
 dump/

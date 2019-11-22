@@ -3,17 +3,20 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 
-// import mongoose driver, database configuration
+//Import Shop router
+const shopRouter = require('./routers/shop-router');
+
+//Import mongoose driver, database configuration
 const mongoose = require('mongoose');
 const database = require('./config/database');
 
-// sets to avoid deprication Warnings in Mongoose
+//Sets to avoid deprication Warnings in Mongoose
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
-// establish connection to Atlas MongoDB
+//Establish connection to Atlas MongoDB
 mongoose.connect(database.connectionString, (err) => {
     if (!err) {
         console.log('MongoDB Atlas Connection Succeeded.');
@@ -33,8 +36,11 @@ const app = express();
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
 
-//set public folder to serve static files
+//Set public folder to serve static files
 app.use(express.static(path.join(__dirname, 'public')));
+
+//Implement Shop Router
+app.use('/api/v1/shops', shopRouter);
 
 //Listen to port set on .env file
 app.listen(ENV.PORT, () => {
