@@ -1,0 +1,26 @@
+{
+  "name": "united-remote",
+  "version": "1.0.0",
+  "description": "United Remote Coding Challenge",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nadirBenSaid/united-remote.git"
+  },
+  "author": "Ben Said Nadir",
+  "license": "SEE LICENSE IN <LICENSE>",
+  "bugs": {
+    "url": "https://github.com/nadirBenSaid/united-remote/issues"
+  },
+  "homepage": "https://github.com/nadirBenSaid/united-remote#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.7.12"
+  }
+}
