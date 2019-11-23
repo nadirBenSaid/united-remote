@@ -25,25 +25,18 @@ router.route('/')
 
     //http GET to retrieve shops based on URL parameters
     .get((req, res) => {
-        
+        let params = req.query;
+        shopModel.retrieveShops(params, (err, resp) => {
+            if (err) {
+                errorHandler(res, err.message, "Failed to retrieve shops.", 422);
+            } else {
+                if(resp.docs.length === 0){
+                    res.status(404).json(resp);
+                }else{
+                    res.status(200).json(resp);
+                }
+            }
+        });
     });
-
-//Route for /api/v1/shops/:id
-router.route('/:id')
-
-    //http GET to retrieve shop details by id
-    .get((req, res) => {
-        
-})
-
-    //http PUT to update shop by id
-    .put((req, res) => {
-    
-})
-
-    //http DELETE to delete post by id
-    .delete((req, res) => {
-    
-});
 
 module.exports = router;
