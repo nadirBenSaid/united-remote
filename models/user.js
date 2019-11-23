@@ -26,3 +26,8 @@ exports.createUser = (newUser, callback) => {
 exports.retrieveUser = (email, callback) => {
     User.find({email}, 'password', {limit: 1}, callback);
 }
+
+//Retrieve user by id
+exports.retrieveUserById = (_id, callback)=>{
+    User.findById({_id}, callback);
+}
