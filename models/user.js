@@ -21,3 +21,8 @@ const User = module.exports.User = mongoose.model('User', userSchema);
 exports.createUser = (newUser, callback) => {
     newUser.save(callback);
 }
+
+//Retrieve user from MongoDB atlas
+exports.retrieveUser = (email, callback) => {
+    User.find({email}, 'password', {limit: 1}, callback);
+}
