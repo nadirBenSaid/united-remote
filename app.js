@@ -3,8 +3,9 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 
-//Import Shop router
+//Import Shop and User router
 const shopRouter = require('./routers/shop-router');
+const userRouter = require('./routers/user-router');
 
 //Import mongoose driver, database configuration
 const mongoose = require('mongoose');
@@ -41,6 +42,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //Implement Shop Router
 app.use('/api/v1/shops', shopRouter);
+
+//Implement User Router
+app.use('/api/v1/users', userRouter);
 
 //Listen to port set on .env file
 app.listen(ENV.PORT, () => {
