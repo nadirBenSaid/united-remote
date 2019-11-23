@@ -101,3 +101,18 @@ exports.retrieveShops = (params, callback)=>{
         resEvent.emit('docs', {docs: res, error: err});
     });
 }
+
+//Select shop's details from mongodb by id
+exports.retrieveShop = (_id, callback)=>{
+    Shop.findById({_id}, callback);
+}
+
+//Select shop's details from mongodb by id
+exports.updateShop = (_id, shopData, callback)=>{
+    Shop.updateOne({_id}, shopData, callback);
+}
+
+//Select shop's details from mongodb by id
+exports.deleteShop = (_id, callback)=>{
+    Shop.deleteOne({_id}, callback);
+}
