@@ -1,39 +1,47 @@
-//Import mongoose driver and Schema
+//Import mongoose driver, Schema and shopSchema
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
+const shopModel = require('./shop');
 
 //Create User Schema object
-const userSchema = new Schema({
-    name: {type: String, required:[true, 'why no name?']},
-    email : {type: String, unique: true, required:[true, 'why no email?']},
-    password : {type: String, required:[true, 'why no password?']},
-    likes: [{type: ObjectId, ref: 'Shop'}],
-    dislikes: [
-        {
-            _id: {type: ObjectId, ref: 'Shop'}, 
-            dislikedAt: { type : Date, default: Date.now }
-        }
-    ]
-},{versionKey: false});
+const userSchema = new Schema(
+	{
+		name: { type: String, required: [true, 'why no name?'] },
+		email: {
+			type: String,
+			unique: true,
+			required: [true, 'why no email?'],
+		},
+		password: { type: String, required: [true, 'why no password?'] },
+		likes: [{ type: ObjectId, ref: 'Shop' }],
+		dislikes: [
+			{
+				_id: { type: ObjectId, ref: 'Shop' },
+				dislikedAt: { type: Date, default: Date.now },
+			},
+		],
+	},
+	{ versionKey: false }
+);
 
 //Create User Model
-const User = module.exports.User = mongoose.model('User', userSchema);
+const User = (module.exports.User = mongoose.model('User', userSchema));
 
 //Insert a user in MongoDB atlas using mongoose
 exports.createUser = (newUser, callback) => {
-    newUser.save(callback);
-}
+	newUser.save(callback);
+};
 
 //Retrieve user from MongoDB atlas
 exports.retrieveUser = (email, callback) => {
-    User.find({email}, 'password', {limit: 1}, callback);
-}
+	User.find({ email }, 'password', { limit: 1 }, callback);
+};
 
 //Retrieve user by id
-exports.retrieveUserById = (_id, callback)=>{
-    User.findById({_id}, callback);
-}
+const retrieveUserById = (exports.retrieveUserById = (_id, callback) => {
+	User.findById({ _id }, callback);
+});
 
 //Move shop betwen like/dislike/neutral states based on previous
 // shop state and a provided argument (up) that describes how
@@ -47,48 +55,79 @@ exports.retrieveUserById = (_id, callback)=>{
 //
 // etc...
 //
-exports.likeOrDislikeShop = (_id, req, callback) =>{
+exports.likeOrDislikeShop = (_id, req, callback) => {
+	//verify whether shop exists in DB
+	shopModel.retrieveShop(req.params.shopId, (err, doc) => {
+		if (err) {
+			console.log(err);
+		} else {
+			if (!doc) {
+				callback(err, doc);
+			} else {
+				updateUserPreferences(_id, req, callback);
+			}
+		}
+	});
+};
 
-    //Detects whether shop is within dislikes
-    function dislikesInclude(user){
-        let test = false;
+/*
+ **
+ **		Separate Functions to better encapsulate the code's logic
+ **
+ */
 
-        //Sets test to true if shop in dislikes
-        user.dislikes.map(ele=>{
-            if(ele._id == req.params.shopId){
-                test = true
-            }
-        })
-        return test;
-    }
+//Detects whether shop is within dislikes
+function dislikesInclude(user, req) {
+	let test = false;
 
-    this.retrieveUserById(_id, (err, user)=> {
-        if(!err){
+	//Sets test to true if shop in dislikes
+	user.dislikes.map(ele => {
+		if (ele._id == req.params.shopId) {
+			test = true;
+		}
+	});
+	return test;
+}
 
-            //insert into likes
-            if(!dislikesInclude(user) && !user.likes.includes(req.params.shopId) && req.body.up){
-                user.likes.push(req.params.shopId);
-            }
+//Update Likes/Dislikes
+function updateUserPreferences(_id, req, callback) {
+	//retrieve user
+	retrieveUserById(_id, (err, user) => {
+		if (!err) {
+			//insert into likes if not already in likes/dislikes
+			if (
+				!dislikesInclude(user, req) &&
+				!user.likes.includes(req.params.shopId) &&
+				req.body.up
+			) {
+				user.likes.push(req.params.shopId);
+			}
 
-            //insert into dislikes
-            if(!dislikesInclude(user) && !user.likes.includes(req.params.shopId) && !req.body.up){
-                user.dislikes.push({
-                    _id: req.params.shopId
-                });
-            }
+			//insert into dislikes if not already in likes/dislikes
+			if (
+				!dislikesInclude(user, req) &&
+				!user.likes.includes(req.params.shopId) &&
+				!req.body.up
+			) {
+				user.dislikes.push({
+					_id: req.params.shopId,
+				});
+			}
 
-            //remove from likes
-            if(user.likes.includes(req.params.shopId) && !req.body.up){
-                user.likes = user.likes.filter(ele=> ele != req.params.shopId);
-            }
+			//remove from likes if already in likes
+			if (user.likes.includes(req.params.shopId) && !req.body.up) {
+				user.likes = user.likes.filter(ele => ele != req.params.shopId);
+			}
 
-            //remove from dislikes
-            if(dislikesInclude(user) && req.body.up){
-                user.dislikes = user.dislikes.filter(ele=> ele._id != req.params.shopId);
-            }
-
-            user.save();
-        }
-        callback(err, user);
-    });
+			//remove from dislikes if already in dislikes
+			if (dislikesInclude(user, req) && req.body.up) {
+				user.dislikes = user.dislikes.filter(
+					ele => ele._id != req.params.shopId
+				);
+			}
+			// persist changes
+			user.save();
+		}
+		callback(err, user);
+	});
 }

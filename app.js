@@ -18,12 +18,12 @@ mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
 //Establish connection to Atlas MongoDB
-mongoose.connect(database.connectionString, (err) => {
-    if (!err) {
-        console.log('MongoDB Atlas Connection Succeeded.');
-    } else {
-        console.log('Error in DB connection: ' + err);
-    }
+mongoose.connect(database.connectionString, err => {
+	if (!err) {
+		console.log('MongoDB Atlas Connection Succeeded.');
+	} else {
+		console.log('Error in DB connection: ' + err);
+	}
 });
 
 //Import and configure environment variables from .env file
@@ -34,7 +34,7 @@ const ENV = process.env;
 const app = express();
 
 //Middleware for bodyparsing using both json and urlencoding
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 //Set public folder to serve static files
@@ -48,5 +48,5 @@ app.use('/api/v1/users', userRouter);
 
 //Listen to port set on .env file
 app.listen(ENV.PORT, () => {
-    console.log(`Starting the server at port ${ENV.PORT}.`);
+	console.log(`Starting the server at port ${ENV.PORT}.`);
 });
