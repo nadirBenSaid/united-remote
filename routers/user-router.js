@@ -25,6 +25,9 @@ const userModel = require('../models/user');
 const express = require('express');
 const router = express.Router();
 
+//Import Shop model
+const shopModel = require('../models/shop');
+
 /*
  **
  **     ROUTES SECTION
@@ -212,11 +215,7 @@ function getUserShops(payload, req, res) {
 	userModel.retrieveUserById(payload._id, (err, doc) => {
 		if (!err) {
 			if (doc) {
-				//return a payload containing likes and dislikes
-				res.status(200).json({
-					likes: doc.likes,
-					dislikes: doc.dislikes,
-				});
+				returnPayload(doc, req, res);
 			} else {
 				//error for doc not found
 				res.sendStatus(404);
@@ -226,6 +225,31 @@ function getUserShops(payload, req, res) {
 			errorHandler(res, 'internal server error', err, 500);
 		}
 	});
+}
+
+//return Payload containing User shops based on req
+function returnPayload(doc, req, res) {
+	if (req.query.likes) {
+		//Retrieve Shops by Ids
+		shopModel.retrieveShopsByIds(doc.likes, (err, docs) => {
+			if (err) {
+				errorHandler(res, 'internal server error', err, 500);
+			} else {
+				if (docs.length === 0) {
+					res.sendStatus(404);
+				} else {
+					//Return payload containing prefered shops
+					res.status(200).json(docs);
+				}
+			}
+		});
+	} else {
+		//return a payload containing ids of liked and disliked shops
+		res.status(200).json({
+			likes: doc.likes,
+			dislikes: doc.dislikes,
+		});
+	}
 }
 
 //Update user's likes and dislikes

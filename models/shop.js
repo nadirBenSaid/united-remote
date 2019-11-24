@@ -124,3 +124,8 @@ exports.updateShop = (_id, shopData, callback) => {
 exports.deleteShop = (_id, callback) => {
 	Shop.deleteOne({ _id }, callback);
 };
+
+//Get shops from array of Ids
+exports.retrieveShopsByIds = (ids, callback) => {
+	Shop.find({ _id: { $in: ids } }, callback);
+};
