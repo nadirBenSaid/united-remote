@@ -158,11 +158,34 @@ router.route('/shops/:shopId')
     //Insert shop in likes or dislikes based on payload
     .put(verifyToken, (req, res)=>{
         
+        //verify token and return payload
+        jwt.verify(req.token, publicKey, {algorithms: ['RS256']},(tokenErr, payload)=>{
+            if(!tokenErr){
+
+                //like or dislike Shop
+                userModel.likeOrDislikeShop(payload._id, req, (err, doc)=>{
+                    if(!err){
+                        if(doc){
+
+                            //return a payload containing updated user
+                            res.status(200).json(doc);
+                        }else{
+
+                            //error for doc not found
+                            res.sendStatus(404);
+                        }
+                    }else{
+                        
+                        //DB error
+                        errorHandler(res, "internal server error", err, 500);
+                    }
+                });
+            }else{
+
+                //unauthorized access
+                errorHandler(res, "Unauthorized request", tokenErr, 403);
+            }
+        });
     })
-
-    //Remove shop from likes
-    .delete(()=>{
-
-    });
 
 module.exports = router;
