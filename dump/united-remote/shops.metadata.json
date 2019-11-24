@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"united-remote.shops"},{"v":{"$numberInt":"2"},"key":{"location":"2dsphere"},"name":"location_2dsphere","ns":"united-remote.shops","background":true,"2dsphereIndexVersion":{"$numberInt":"3"}}],"uuid":"c7fccd351b73439c9495f6f1fd1fe424"}
