@@ -7,14 +7,18 @@
 //Import JWT, a JSON Web Token implementation
 const jwt = require('jsonwebtoken');
 
+//Import and configure environment variables from .env file
+require('dotenv').config();
+const ENV = process.env;
+
 //Import and config bcript for password hashing and comparing
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 //Import file system and read private and public keys
 const fs = require('fs');
-const privateKey = fs.readFileSync('./config/jwtRS256.key');
-const publicKey = fs.readFileSync('./config/jwtRS256.key.pub');
+const privateKey = fs.readFileSync(ENV.PRIVATE_KEY);
+const publicKey = fs.readFileSync(ENV.PUBLIC_KEY);
 
 //Import User model and Express router
 const userModel = require('../models/user');
