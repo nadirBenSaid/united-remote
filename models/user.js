@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const shopModel = require('./shop');
+const timestampModel = require('./timestamp');
 
 //Create User Schema object
 const userSchema = new Schema(
@@ -18,7 +19,7 @@ const userSchema = new Schema(
 		dislikes: [
 			{
 				_id: { type: ObjectId, ref: 'Shop' },
-				dislikedAt: { type: Date, default: Date.now },
+				_time: { type: ObjectId, ref: 'Timestamp' },
 			},
 		],
 	},
@@ -109,8 +110,11 @@ function updateUserPreferences(_id, req, callback) {
 				!user.likes.includes(req.params.shopId) &&
 				!req.body.up
 			) {
+				let timestamp = new timestampModel.Timestamp();
+				timestamp.save();
 				user.dislikes.push({
 					_id: req.params.shopId,
+					_time: timestamp._id,
 				});
 			}
 
@@ -119,12 +123,6 @@ function updateUserPreferences(_id, req, callback) {
 				user.likes = user.likes.filter(ele => ele != req.params.shopId);
 			}
 
-			//remove from dislikes if already in dislikes
-			if (dislikesInclude(user, req) && req.body.up) {
-				user.dislikes = user.dislikes.filter(
-					ele => ele._id != req.params.shopId
-				);
-			}
 			// persist changes
 			user.save();
 		}
