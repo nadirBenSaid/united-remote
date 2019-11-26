@@ -27,14 +27,6 @@
 							v-on:click="alert('shop disliked')"
 						></mdb-btn>
 					</mdb-btn-group>
-					<!-- <mdb-btn
-						id="details"
-						size="sm"
-						color="primary"
-						icon="info-circle"
-						v-on:click="alert('shop details')"
-						>Details</mdb-btn -->
-					>
 				</mdb-btn-group>
 			</mdb-card-body>
 		</mdb-card>
