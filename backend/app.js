@@ -2,6 +2,7 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 //Import Shop and User router
 const shopRouter = require('./routers/shop-router');
@@ -32,6 +33,9 @@ const ENV = process.env;
 
 //Initialize our app variable
 const app = express();
+
+//Allow CORS from all origins
+app.use(cors());
 
 //Middleware for bodyparsing using both json and urlencoding
 app.use(bodyParser.urlencoded({ extended: true }));

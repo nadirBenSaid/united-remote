@@ -54,19 +54,25 @@ exports.retrieveShops = (params, callback) => {
 	}
 
 	//Geo Sort by location and filter by distance
+
+	let center = [];
+
 	if (params.location) {
-		let center = params.location.split(',').map(ele => +ele);
-		criteria.location = {
-			$near: {
-				$geometry: {
-					type: 'Point',
-					coordinates: center,
-				},
-			},
-		};
-		if (params.distance)
-			criteria.location.$near.$maxDistance = +params.distance;
+		center = params.location.split(',').map(ele => +ele);
+	} else {
+		center = [-6.8498, 33.9716];
 	}
+	criteria.location = {
+		$near: {
+			$geometry: {
+				type: 'Point',
+				coordinates: center,
+			},
+		},
+	};
+	criteria.location.$near.$maxDistance = params.distance
+		? +params.distance
+		: 10000;
 
 	//Check pagination parameters
 	if (params.limit && params.skip) {
