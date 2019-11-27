@@ -60,6 +60,7 @@ exports.retrieveShops = (params, callback) => {
 	if (params.location) {
 		center = params.location.split(',').map(ele => +ele);
 	} else {
+		//if location not enabled by client, defaults to center of Rabat
 		center = [-6.8498, 33.9716];
 	}
 	criteria.location = {
@@ -70,6 +71,8 @@ exports.retrieveShops = (params, callback) => {
 			},
 		},
 	};
+
+	//if no circle radius defined, defaults to a 10 km radius
 	criteria.location.$near.$maxDistance = params.distance
 		? +params.distance
 		: 10000;
