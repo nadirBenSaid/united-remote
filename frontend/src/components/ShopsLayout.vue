@@ -67,7 +67,7 @@ export default {
 		},
 	},
 	mounted() {
-		//mount scroll function to window
+		//mount scroll function to window (for infinite scroll)
 		this.scroll();
 	},
 	computed: mapGetters(['allShops', 'totalCount']),

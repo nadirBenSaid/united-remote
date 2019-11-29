@@ -19,6 +19,11 @@
 						>
 					</mdb-nav-item>
 				</mdb-navbar-nav>
+				<mdb-navbar-nav right>
+					<mdb-nav-item waves-fixed>
+						<a v-on:click="logout()">Logout</a>
+					</mdb-nav-item>
+				</mdb-navbar-nav>
 				<!-- Search form -->
 				<!-- <form>
           <mdb-input
@@ -47,6 +52,7 @@ import {
 	mdbInput,
 	mdbBtn,
 } from 'mdbvue';
+import { mapActions } from 'vuex';
 
 export default {
 	name: 'NavigationPage',
@@ -63,6 +69,9 @@ export default {
 			navbarType: 'regular-fixed',
 			content: false,
 		};
+	},
+	methods: {
+		...mapActions(['logout']),
 	},
 };
 </script>

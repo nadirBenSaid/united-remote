@@ -102,11 +102,12 @@ function hashAndSalt(user, res) {
 }
 
 //Function to persist newly created user
+// and return a user token
 function persistUser(newUser, res) {
 	//Model function to persist user in DB
 	userModel.createUser(newUser, (err, doc) => {
 		if (!err) {
-			res.status(201).json(doc);
+			generateToken(res, doc, 201);
 		} else {
 			errorHandler(res, err.message, 'Failed to create new User.', 422);
 		}
@@ -137,16 +138,21 @@ function verifyPassword(req, res, doc) {
 	//Compare hashed password with user provided password
 	bcrypt.compare(req.body.password, doc.password, (hashErr, result) => {
 		if (!hashErr && result) {
-			generateToken(res, doc);
+			generateToken(res, doc, 200);
 		} else {
 			//Wrong password error
-			errorHandler(res, 'Email or password are wrong', hashErr, 404);
+			errorHandler(
+				res,
+				'Email or password are wrong',
+				'Wrong password',
+				404
+			);
 		}
 	});
 }
 
 //Generating a token for verified user to use in future requests
-function generateToken(res, doc) {
+function generateToken(res, doc, resStatus) {
 	//Generate user access token
 	jwt.sign(
 		{ _id: doc._id },
@@ -156,7 +162,7 @@ function generateToken(res, doc) {
 			if (!tokenErr) {
 				//Return User access token that will be used to access
 				//User limited endpoints
-				res.status(200).json(token);
+				res.status(resStatus).json(token);
 			} else {
 				//Token generation error
 				errorHandler(res, 'Internal server error', tokenErr, 500);
