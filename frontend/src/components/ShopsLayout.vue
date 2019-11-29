@@ -6,12 +6,20 @@
 			</mdb-row>
 			<br />
 		</div>
+		<section v-if="totalCount != allShops.length">
+			<div class="justify-content-center">
+				<div class="spinner-border" role="status">
+					<span class="sr-only">Loading...</span>
+				</div>
+			</div>
+		</section>
 	</mdb-container>
 </template>
 
 <script>
 import ShopCard from '@/components/ShopCard.vue';
 import { mdbContainer, mdbRow } from 'mdbvue';
+import debounce from 'lodash.debounce';
 
 //Importing Getters and Actions mappers to manipulate vuex state
 import { mapGetters, mapActions } from 'vuex';
@@ -26,6 +34,7 @@ export default {
 	methods: {
 		//mapping shop module actions
 		...mapActions(['fetchShops', 'getLocation']),
+
 		//function to slice array
 		//example: [1,2,3,4,5,6] --> [[1,2,3,4],[5,6]]
 		chunk: (arr, size) => {
@@ -34,24 +43,27 @@ export default {
 				(v, i) => arr.slice(i * size, i * size + size)
 			);
 		},
+
 		//function for "infinite scrolling"
 		scroll() {
 			// listen on scrolling
-			window.onscroll = () => {
-				//check wether user is at bottom of page
-				let bottomOfWindow =
-					document.documentElement.scrollTop +
-						window.innerHeight +
-						5 >=
-					document.documentElement.offsetHeight;
+			window.onscroll = debounce(() => {
+				//detect user scroll position
+				let d = document.documentElement;
+				let offset = Math.ceil(d.scrollTop + window.innerHeight);
+				let height = d.offsetHeight - 7;
 
 				//if user at bottom of the page and there are more
 				//shops to load, send a get request to fetch the next 16
 				//shop
-				if (bottomOfWindow && this.allShops.length != this.totalCount) {
+				if (
+					offset >= height &&
+					this.allShops.length < this.totalCount
+				) {
+					console.log(offset, height);
 					this.fetchShops({ skip: this.allShops.length, limit: 16 });
 				}
-			};
+			}, 500);
 		},
 	},
 	mounted() {

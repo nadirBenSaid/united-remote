@@ -13,8 +13,7 @@ const routes = [
 	{
 		path: '/liked',
 		name: 'liked',
-		component: () =>
-			import(/* webpackChunkName: "about" */ '../views/LikedShops.vue'),
+		component: () => import('../views/LikedShops.vue'),
 	},
 ];
 

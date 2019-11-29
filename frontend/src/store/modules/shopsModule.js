@@ -43,14 +43,16 @@ const actions = {
 					pos.coords.longitude + ',' + pos.coords.latitude
 				);
 				//initiate first fetch
-				actions.fetchShops({ commit }, { skip: 0, limit: 16 });
+				if (state.count == 0)
+					actions.fetchShops({ commit }, { skip: 0, limit: 16 });
 			},
 			err => {
 				this.gettingLocation = false;
 				this.errorStr = err.message;
 				//initiate first fetch without location (defaults in backend
 				// to center of Rabat)
-				actions.fetchShops({ commit }, { skip: 0, limit: 16 });
+				if (state.count == 0)
+					actions.fetchShops({ commit }, { skip: 0, limit: 16 });
 			}
 		);
 	},
@@ -95,7 +97,7 @@ const actions = {
 const mutations = {
 	setShopsAndCount: (state, data) => {
 		state.shops = [...state.shops, ...data.docs];
-		state.count = data.count;
+		state.count = data.totalCount;
 	},
 	setLocation: (state, data) => {
 		state.loca = data;
