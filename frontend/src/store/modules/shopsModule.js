@@ -1,29 +1,44 @@
 import axios from 'axios';
 import router from '../../router';
 
-//module state
-const state = {
-	// an array containing all shops to display in home
-	shops: [],
-	// total count of shops to display in home
-	// (varies each time we fetch more shops)
-	// it is the sum of the next two counts
-	totalCount: 0,
-	// totalCount fetched from API response
-	fetchedCount: 0,
-	// total of liked/disliked shops of user
-	hiddenCount: 0,
-	// total of fetches
-	fetchRounds: 0,
-	// user's location
-	location: '',
-	// user token
-	token: localStorage.getItem('token') || '',
-	// array of liked shops Ids
-	likedShopsIds: [],
-	// array of disliked shops Ids
-	dislikedShopsIds: [],
+const getDefaultState = () => {
+	return {
+		// an array containing all shops to display in home
+		shops: [],
+
+		// an array containing a list of liked shops
+		likedShops: [],
+
+		// total count of shops to display in home
+		// (varies each time we fetch more shops)
+		// it is the sum of the next two counts
+		totalCount: 0,
+
+		// totalCount fetched from API response
+		fetchedCount: 0,
+
+		// total of liked/disliked shops of user
+		hiddenCount: 0,
+
+		// total of fetches
+		fetchRounds: 0,
+
+		// user's location
+		location: '',
+
+		// user token
+		token: localStorage.getItem('token') || '',
+
+		// array of liked shops Ids
+		likedShopsIds: [],
+
+		// array of disliked shops Ids
+		dislikedShopsIds: [],
+	};
 };
+
+//module state
+let state = getDefaultState();
 
 //module getters
 const getters = {
@@ -45,6 +60,8 @@ const getters = {
 	getHidden: state => state.hiddenCount,
 	//getter for skipping
 	getSkip: state => state.fetchRounds,
+	//getter for liked shops
+	getLikedShops: state => state.likedShops,
 };
 
 // module actions
@@ -218,6 +235,37 @@ const actions = {
 			// log error
 			.catch(err => console.error(err));
 	},
+
+	// fetch liked shops (details)
+	fetchLikedShops: ({ commit }) => {
+		//set authorization header
+		axios.defaults.headers.common['Authorization'] = state.token;
+		//send get HTTP request and fetch data from response
+		axios
+			.get(`${process.env.VUE_APP_URL}/api/v1/users/shops?likes=true`)
+			.then(res => commit('setLikedShops', res.data))
+			.catch(err => console.error(err));
+	},
+
+	// remove a shop from liked shops
+	removeShop: ({ commit }, id) => {
+		//set authorization header
+		axios.defaults.headers.common['Authorization'] = state.token;
+		//send put request to alter user likes
+		axios
+			.put(`${process.env.VUE_APP_URL}/api/v1/users/shops/${id}`, {
+				up: false,
+			})
+			// success callback
+			.then(user => {
+				//fetch new preferences and update state
+				actions.fetchLikedShops({ commit });
+				// commit mutations
+				commit('removeShop', id);
+			})
+			// log error
+			.catch(err => console.error(err));
+	},
 };
 
 //module mutations
@@ -228,15 +276,18 @@ const mutations = {
 		localStorage.setItem('token', state.token);
 		router.push('/');
 	},
+
 	// set user location
 	setLocation: (state, data) => {
 		state.location = data;
 	},
+
 	// set user shop preferences
 	setShops: (state, user) => {
 		state.likedShopsIds = user.likes;
 		state.dislikedShopsIds = user.dislikes.map(shop => shop._id);
 	},
+
 	// set shop array from fetched response data and update counts
 	setShopsAndCount: (state, data) => {
 		state.shops = [...state.shops, ...data.docs];
@@ -244,18 +295,33 @@ const mutations = {
 		state.totalCount = state.fetchedCount + state.hiddenCount;
 		state.fetchRounds += 1;
 	},
+
 	// unset all token data and direct to auth page
 	logout: state => {
-		state.token = '';
-		state.likedShopsIds = [];
-		state.dislikedShopsIds = [];
+		// Merge rather than replace so we don't lose observers
+		// https://github.com/vuejs/vuex/issues/1118
+		Object.assign(state, getDefaultState());
 		router.push('/auth');
 	},
+
 	// update number of shops hidden from home page
 	updateHidden: state => (state.hiddenCount -= 1),
+
 	// remove liked/disliked shop from home page
 	filterShops: (state, id) =>
 		(state.shops = state.shops.filter(shop => shop._id != id)),
+
+	// setting user liked shops
+	setLikedShops: (state, shops) => (state.likedShops = shops),
+
+	// mutation to reset state attributes for fresh shop fetch
+	removeShop: (state, id) => {
+		state.shops = [];
+		state.hiddenCount = 0;
+		state.fetchRounds = 0;
+		state.fetchedCount = 0;
+		state.likedShops = state.likedShops.filter(_id => id != _id);
+	},
 };
 
 //export vuex module

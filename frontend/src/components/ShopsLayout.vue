@@ -55,8 +55,11 @@ export default {
         //if user at bottom of the page and there are more
         //shops to load, send a get request to fetch the next 16
         //shop
-        if (offset >= height && this.allShops.length < this.totalCount) {
-          console.log(offset, height);
+        if (
+          offset >= height &&
+          this.allShops.length < this.totalCount &&
+          this.$route.path == "/"
+        ) {
           this.fetchShops({
             skip: 16 * this.getSkip,
             limit: 16
@@ -66,15 +69,13 @@ export default {
     }
   },
   mounted() {
-    //mount scroll function to window (for infinite scroll)
-    this.scroll();
-  },
-  computed: mapGetters(["allShops", "totalCount", "getSkip"]),
-  created() {
     //get user location, and display first 16 shops if there are shops
     // that match the user's location.
     this.getLocation();
-  }
+    //mount scroll function to window (for infinite scroll)
+    this.scroll();
+  },
+  computed: mapGetters(["allShops", "totalCount", "getSkip"])
 };
 </script>
 
