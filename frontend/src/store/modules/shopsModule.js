@@ -1,5 +1,6 @@
 import axios from 'axios';
 import router from '../../router';
+import Swal from 'sweetalert2';
 
 const getDefaultState = () => {
 	return {
@@ -81,7 +82,11 @@ const actions = {
 				.then(response => commit('setToken', response.data))
 				//log error
 				.catch(err => {
-					console.error(err);
+					Swal.fire(
+						'Try again!',
+						'The data you entered is invalid',
+						'error'
+					);
 				});
 		}
 	},
@@ -100,7 +105,7 @@ const actions = {
 				.then(response => commit('setToken', response.data))
 				// log error in case of error
 				.catch(err => {
-					console.error(err);
+					Swal.fire('Try again!', 'Wrong email or password', 'error');
 				});
 		}
 	},
@@ -123,7 +128,15 @@ const actions = {
 			// error callback
 			err => {
 				// log error
-				console.error(err.message);
+				if (state.totalCount == 0) {
+					Swal.fire({
+						title: "We can't get your location",
+						text:
+							"User's location is defaulted to center of Rabat, we don't save your location info so maybe change your mind?",
+						icon: 'info',
+						confirmButtonText: "I'll think about it...",
+					});
+				}
 				//initiate first fetch without location (defaults in backend
 				// to center of Rabat)
 				if (state.fetchedCount == 0)
@@ -170,7 +183,13 @@ const actions = {
 				commit('setShopsAndCount', res.data);
 			})
 			// error handling
-			.catch(err => console.error(err));
+			.catch(err =>
+				Swal.fire(
+					'Error',
+					"Something wrong happened and we can't seem to retrieve your shops",
+					'error'
+				)
+			);
 	},
 
 	// function to fetch liked/disliked shops from API
@@ -183,7 +202,13 @@ const actions = {
 			// commit mutation
 			.then(res => commit('setShops', res.data))
 			//handle error
-			.catch(err => console.error(err));
+			.catch(err =>
+				Swal.fire(
+					'Error',
+					"Something wrong happened and we can't seem to retrieve the shops",
+					'error'
+				)
+			);
 	},
 
 	// logout function
@@ -213,7 +238,13 @@ const actions = {
 				commit('updateHidden');
 			})
 			// log error if failed
-			.catch(err => console.error(err));
+			.catch(err =>
+				Swal.fire(
+					'Error',
+					"Something wrong happened and we can't seem to like the shop",
+					'error'
+				)
+			);
 	},
 
 	// dislike a shop
@@ -233,7 +264,13 @@ const actions = {
 				commit('setShops', user.data);
 			})
 			// log error
-			.catch(err => console.error(err));
+			.catch(err =>
+				Swal.fire(
+					'Error',
+					"Something wrong happened and we can't seem to dislike this shop",
+					'error'
+				)
+			);
 	},
 
 	// fetch liked shops (details)
@@ -244,7 +281,13 @@ const actions = {
 		axios
 			.get(`${process.env.VUE_APP_URL}/api/v1/users/shops?likes=true`)
 			.then(res => commit('setLikedShops', res.data))
-			.catch(err => console.error(err));
+			.catch(err =>
+				Swal.fire(
+					'Error',
+					"Something wrong happened and we can't seem to retrieve your shops",
+					'error'
+				)
+			);
 	},
 
 	// remove a shop from liked shops
@@ -264,7 +307,13 @@ const actions = {
 				commit('removeShop', id);
 			})
 			// log error
-			.catch(err => console.error(err));
+			.catch(err =>
+				Swal.fire(
+					'Error',
+					"Something wrong happened and we can't seem to remove this shop",
+					'error'
+				)
+			);
 	},
 };
 
