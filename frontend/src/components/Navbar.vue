@@ -71,6 +71,7 @@ export default {
 		};
 	},
 	methods: {
+		//mapping logout action from store's authModule
 		...mapActions(['logout']),
 	},
 };

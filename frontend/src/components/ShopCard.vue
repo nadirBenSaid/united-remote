@@ -18,13 +18,13 @@
 							color="success"
 							size="sm"
 							icon="thumbs-up"
-							v-on:click="alert('shop likes')"
+							v-on:click="likeShop(shop._id)"
 						></mdb-btn>
 						<mdb-btn
 							color="danger"
 							size="sm"
 							icon="thumbs-down"
-							v-on:click="alert('shop disliked')"
+							v-on:click="dislikeShop(shop._id)"
 						></mdb-btn>
 					</mdb-btn-group>
 				</mdb-btn-group>
@@ -46,6 +46,7 @@ import {
 	mdbView,
 	mdbMask,
 } from 'mdbvue';
+import { mapActions } from 'vuex';
 
 export default {
 	name: 'ShopCard',
@@ -61,6 +62,9 @@ export default {
 		mdbBtn,
 		mdbView,
 		mdbMask,
+	},
+	methods: {
+		...mapActions(['likeShop', 'dislikeShop']),
 	},
 };
 </script>
