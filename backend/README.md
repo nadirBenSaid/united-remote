@@ -158,8 +158,9 @@ User `JSON` example:
 - `GET /api/v1/shops`
 
 This endpoint is used to bulk retrieve shops, it doesn't require any special `HTTP` headers. this endpoint takes the following query parameters:
+
 |Param  | Usage |
-|--|--|
+|---|---|
 | `name` | This query parameter is used to perform a search by name, it looks for any Shop with a name that is similar to the passed value. **Example:** `api/v1/shops?name=cu` would return shops with names like Cujo and Securia. *This feature **is not** implemented in the Vue app.*|
 |`city`|This query parameter is used to perform a search by shop's city, it works in a similar manner to `name`. *This feature **is not** implemented in the Vue app.*|
 | `location` | This parameter represents the center of a circle, it is used by the backend to return shops sorted nearest first. **Example:** `shops?location=-6.82,33.86` where `-6.82` is longitude and `33.86` is latitude. if no location query parameter sent, the location defaults to `-6.8498, 33.9716` (center of Rabat). *This feature **is** implemented in the Vue app.* |
