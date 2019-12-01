@@ -1,3 +1,4 @@
+
 <h1  align="center">Welcome to united-remote-backend 👋</h1>
 
 <p>
@@ -18,17 +19,24 @@
 
 </p>
 
+  
+
 > United Remote Coding Challenge
+
+  
 
 This is the backend part of the United Remote full-stack coding challenge, It's built using [NodeJS](https://github.com/nodejs/node), [Express](https://github.com/expressjs/express) and [MongoDB](https://github.com/mongodb/mongo)'s cloud platform [Atlas](https://www.mongodb.com/cloud/atlas) for persistence.
 
+  
+  
+
 ### 🏠 [Full project](https://github.com/nadirBenSaid/united-remote)
 
-# Usage:
+  # Usage:
 
 ## Use Locally, manual installation:
 
-To run locally, clone this GitHub repository to your machine. You ultimately only need the backend folder. Then proceed to install the [npm](https://www.npmjs.com/) dependencies using the command:
+To run locally, clone this GitHub repository to your machine. You ultimately only need the backend folder. Then proceed to install  the [npm](https://www.npmjs.com/)  dependencies using the command:
 
 ```bash
 
@@ -52,29 +60,24 @@ You can also use this project as a [Docker](https://www.docker.com/) container, 
 
 ```bash
 docker build -t [IMAGE_NAME]:[TAG] .
-```
-
+``` 
 This image is built using a lightweight [Alpine Linux](https://alpinelinux.org/) distribution, in addition to some dependencies needed for the [npm](https://www.npmjs.com/) packages. the image size is somewhat around ~90 Mo.
 
 Alternatively, you can also pull a [pre-built image](https://hub.docker.com/repository/docker/bensaidnadir/united-remote-backend) from the Docker Hub by running the command:
-
 ```bash
 docker pull bensaidnadir/united-remote-backend:latest
 ```
-
 then proceed to run a Docker container using the command:
-
 ```bash
 docker run [IMAGE_NAME]:[TAG]
 ```
-
 This will expose the project to port `3000` on your machine.
 
 ## Use online (DEMO):
 
 At the time of the publication of this file, there are two containers running a docker image of this project on a [Red Hat OpenShift](https://www.openshift.com/) [Pod](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/pods_and_services.html) to allow remote access for this project. You can access the project through the url:
 
--   [http://ur-coding-challenge.apps.us-east-1.starter.openshift-online.com/](http://ur-coding-challenge.apps.us-east-1.starter.openshift-online.com/)
+ - [http://ur-coding-challenge.apps.us-east-1.starter.openshift-online.com/](http://ur-coding-challenge.apps.us-east-1.starter.openshift-online.com/)
 
 Keep in mind that you might experience some latency depending on your network due to the Pods being hosted on the US east region.
 
@@ -83,16 +86,14 @@ Keep in mind that you might experience some latency depending on your network du
 ## API:
 
 All API calls should be sent to:
-
 ```
 http://[BASE_URL]/api/v1/[endpoint]
 ```
-
 This is for the purpose of grouping API calls and having a clear version included in the request's URL.
 
-There are two main resources on this project. `stores` and `users`.
+There are two main resources on this project. `stores` and `users`. 
 
-`stores` is completely public, no authorization header needed to make requests to this endpoint. it is also completely RESTful, you can perform all CRUD operations on shops although they are not implemented in the Vue app.
+`stores` is completely public, no authorization header needed to make requests to this endpoint. it is also completely RESTful, you can perform all CRUD operations on shops although they are not implemented in the Vue app. 
 
 Shop `JSON` Example:
 
@@ -116,7 +117,6 @@ Shop `JSON` Example:
 `users` on the other hands is not entirely RESTful and most of its endpoints require a `Bearer` Authorization header.
 
 User `JSON` example:
-
 ```JSON
 {
    "likes":[
@@ -155,23 +155,22 @@ User `JSON` example:
 
 ## Shops Endpoints:
 
--   `GET /api/v1/shops`
+- `GET /api/v1/shops`
 
 This endpoint is used to bulk retrieve shops, it doesn't require any special `HTTP` headers. this endpoint takes the following query parameters:
-|Param | Usage |
+|Param  | Usage |
 |--|--|
-| `name` | This query parameter is used to perform a search by name, it looks for any Shop with a name that is similar to the passed value. **Example:** `api/v1/shops?name=cu` would return shops with names like Cujo and Securia. _This feature **is not** implemented in the Vue app._|
-|`city`|This query parameter is used to perform a search by shop's city, it works in a similar manner to `name`. _This feature **is not** implemented in the Vue app._|
-| `location` | This parameter represents the center of a circle, it is used by the backend to return shops sorted nearest first. **Example:** `shops?location=-6.82,33.86` where `-6.82` is longitude and `33.86` is latitude. if no location query parameter sent, the location defaults to `-6.8498, 33.9716` (center of Rabat). _This feature **is** implemented in the Vue app._ |
-|`distance`|This parameter defines the radius of a circle which center is the `location`, the server will only return shops that exist within this circle. **Example:** `shops?distance=1500` will define a radius of 1.5 Km from the center. if this parameter is undefined the server defaults it to a 10 Km radius. _This feature **is not** implemented in the Vue app_ but it is still defaulted to 10 Km in the backend.|
-| `limit` | this parameter only works with `skip`, together they allow users to batch request shops. **Example:** `shops?skip=4&limit=16` will skip first 4 shops then return the following 16 shops. _this feature **is** implemented in the Vue app._|
+| `name` | This query parameter is used to perform a search by name, it looks for any Shop with a name that is similar to the passed value. **Example:** `api/v1/shops?name=cu` would return shops with names like Cujo and Securia. *This feature **is not** implemented in the Vue app.*|
+|`city`|This query parameter is used to perform a search by shop's city, it works in a similar manner to `name`. *This feature **is not** implemented in the Vue app.*|
+| `location` | This parameter represents the center of a circle, it is used by the backend to return shops sorted nearest first. **Example:** `shops?location=-6.82,33.86` where `-6.82` is longitude and `33.86` is latitude. if no location query parameter sent, the location defaults to `-6.8498, 33.9716` (center of Rabat). *This feature **is** implemented in the Vue app.* |
+|`distance`|This parameter defines the radius of a circle which center is the `location`, the server will only return shops that exist within this circle. **Example:** `shops?distance=1500` will define a radius of 1.5 Km from the center. if this parameter is undefined the server defaults it to a 10 Km radius. *This feature **is not** implemented in the Vue app* but it is still defaulted to 10 Km in the backend.|
+| `limit` | this parameter only works with `skip`, together they allow users to batch request shops. **Example:** `shops?skip=4&limit=16` will skip first 4 shops then return the following 16 shops. *this feature **is** implemented in the Vue app.*|
 | `skip` | this parameter only works with `limit`, vue `limit` for details on usage. |
-| `fields` | this parameter defines the shop fields to return. By default, the server returns `_id`, `name`, `city` and `picture`. **Example:** `shops?fields=name,picture` will return a list of shops with the fields `_id`, `name` and `picture`. this can take any combination of fields and `_id` is always present. _this feature **is not** implemented in the Vue app._||
+| `fields` | this parameter defines the shop fields to return. By default, the server returns `_id`, `name`, `city` and `picture`. **Example:** 	`shops?fields=name,picture` will return a list of shops with the fields `_id`, `name` and `picture`. this can take any combination of fields and `_id` is always present. *this feature **is not** implemented in the Vue app.*||
 
 #### Example:
 
 Request:
-
 ```http
 GET /api/v1/shops?name=cu&amp; skip=2&amp; limit=3 HTTP/1.1
 Host: ur-coding-challenge.apps.us-east-1.starter.openshift-online.com
@@ -187,9 +186,7 @@ If-None-Match: W/"169-ism33Ur5OKqDFzsyElbbaYlbc4M"
 cache-control: no-cache
 Postman-Token: 7678589d-2018-4e38-9b31-af033c5dd87f
 ```
-
 This returns a `JSON` file with three fields: `error` that is set to null, `docs` that is the array containing the shops, and `totalCount` which is the total number of shops that match this criteria (useful for pagination). Here is the response:
-
 ```JSON
 {
    "error":null,
@@ -217,9 +214,9 @@ This returns a `JSON` file with three fields: `error` that is set to null, `docs
 }
 ```
 
--   `POST /api/v1/shops`
+- `POST /api/v1/shops`
 
-This endpoint is used to create a new Shop, it requires a `Content-Type: application/json` HTTP header. the request to this endpoint should be accompanied with a payload `JSON` containing all Shop's fields except for the `_id`, the absence of a field would result in a response with a `422 HTTP status` containing the missing fields. Request success results in a `201 HTTP status` response with a payload containing the new Shop. _This feature **is not** implemented in Vue app._
+This endpoint is used to create a new Shop, it requires a `Content-Type: application/json` HTTP header. the request to this endpoint should be accompanied with a payload `JSON` containing all Shop's fields except for the `_id`, the absence of a field would result in a response with a `422 HTTP status` containing the missing fields. Request success results in a `201 HTTP status` response with a payload containing the new Shop.  *This feature **is not** implemented in Vue app.*
 
 #### Example:
 
@@ -258,45 +255,71 @@ Response Payload:
 
 ```json
 {
-	"location": {
-		"coordinates": [-6.88193, 33.98757],
-		"type": "Point"
-	},
-	"_id": "5de449484b3dad27f95840b7",
-	"picture": "http://placehold.it/1200x600",
-	"name": "Kineticutit",
-	"email": "leilaware@kineticutit.com",
-	"city": "Rabat"
+    "location": {
+        "coordinates": [
+            -6.88193,
+            33.98757
+        ],
+        "type": "Point"
+    },
+    "_id": "5de449484b3dad27f95840b7",
+    "picture": "http://placehold.it/1200x600",
+    "name": "Kineticutit",
+    "email": "leilaware@kineticutit.com",
+    "city": "Rabat"
 }
 ```
 
--   `GET /api/v1/shops/[id]`
 
-*   `PUT /api/v1/shops/[id]`
+- `GET /api/v1/shops/[id]`
 
--   `DELETE /api/v1/shops/[id]`
+
+
+- `PUT /api/v1/shops/[id]`
+
+
+
+- `DELETE /api/v1/shops/[id]`
+
+
+
 
 ## Users Endpoints:
-
-##
+## 
 
 ## Author
 
+  
+
 👤 **Ben Said Nadir**
 
--   Website: https://www.linkedin.com/in/nadir-ben-said-49383a183/
+  
 
--   Github: [@nadirBenSaid](https://github.com/nadirBenSaid)
+* Website: https://www.linkedin.com/in/nadir-ben-said-49383a183/
+
+* Github: [@nadirBenSaid](https://github.com/nadirBenSaid)
+
+  
 
 ## 🤝 Contributing
 
+  
+
 Contributions, issues and feature requests are welcome!<br  />Feel free to check [issues page](https://github.com/nadirBenSaid/united-remote/issues).
+
+  
 
 ## Show your support
 
+  
+
 Give a ⭐️ if you like this project!
 
+  
+
 ## 📝 License
+
+  
 
 Copyright © 2019 [Ben Said Nadir](https://github.com/nadirBenSaid).<br  />
 
