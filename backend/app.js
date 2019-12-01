@@ -27,6 +27,9 @@ mongoose.connect(database.connectionString, err => {
 	}
 });
 
+//Import compression
+compression = require('compression');
+
 //Import and configure environment variables from .env file
 require('dotenv').config();
 const ENV = process.env;
@@ -36,6 +39,9 @@ const app = express();
 
 //Allow CORS from all origins
 app.use(cors());
+
+//Use Gzip compresssion
+app.use(compression());
 
 //Middleware for bodyparsing using both json and urlencoding
 app.use(bodyParser.urlencoded({ extended: true }));

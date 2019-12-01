@@ -354,7 +354,20 @@ const mutations = {
 	},
 
 	// update number of shops hidden from home page
-	updateHidden: state => (state.hiddenCount -= 1),
+	updateHidden: state => {
+		//condition to check wether all shops are loaded
+		if (
+			state.shops.length +
+				state.likedShopsIds.length +
+				state.dislikedShopsIds.length ==
+			state.fetchedCount
+		) {
+			// if all shops loaded decrement totalcount instead
+			state.totalCount -= 1;
+		} else {
+			state.hiddenCount -= 1;
+		}
+	},
 
 	// remove liked/disliked shop from home page
 	filterShops: (state, id) =>

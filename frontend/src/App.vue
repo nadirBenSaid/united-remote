@@ -5,8 +5,18 @@
 </template>
 
 <script>
+import Swal from 'sweetalert2';
+
 export default {
 	name: 'App',
+	created() {
+		if (!localStorage.getItem('token'))
+			Swal.fire(
+				'Welcome!',
+				'Please start by either signing up or signing in to experience the website',
+				'info'
+			);
+	},
 };
 </script>
 

@@ -28,6 +28,9 @@ const router = express.Router();
 //Import Shop model
 const shopModel = require('../models/shop');
 
+//Define email Regex
+const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
 /*
  **
  **     ROUTES SECTION
@@ -73,11 +76,16 @@ function errorHandler(res, userMessage, message, code) {
 //function used to signup new users
 function signupUser(req, res) {
 	let user = req.body;
-	//Define empty array attributes for liked and disliked shops
-	user.likes = [];
-	user.dislikes = [];
-	//Hash and salt password
-	hashAndSalt(user, res);
+	//Validate email
+	if (!emailRegex.test(user.email)) {
+		errorHandler(res, 'invalid email format', 'invalid email', 422);
+	} else {
+		//Define empty array attributes for liked and disliked shops
+		user.likes = [];
+		user.dislikes = [];
+		//Hash and salt password
+		hashAndSalt(user, res);
+	}
 }
 
 //function to hash and salt user using bcrypt
