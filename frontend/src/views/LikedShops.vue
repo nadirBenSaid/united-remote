@@ -1,24 +1,20 @@
 <template>
-  <div>
-    <Navbar />
-    <div class="likes">
-      <LikedShopsLayout />
-    </div>
-  </div>
+	<div class="likes">
+		<LikedShopsLayout />
+	</div>
 </template>
 
 <script>
-import Navbar from "@/components/Navbar.vue";
-import LikedShopsLayout from "@/components/LikedShopsLayout.vue";
+import LikedShopsLayout from '@/components/LikedShopsLayout.vue';
 
 export default {
-  name: "LikedShops",
-  components: { Navbar, LikedShopsLayout }
+	name: 'LikedShops',
+	components: { LikedShopsLayout },
 };
 </script>
 
 <style scoped>
 .likes {
-  margin-top: 7%;
+	margin-top: 7%;
 }
 </style>

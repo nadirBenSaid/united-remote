@@ -8,15 +8,15 @@ const Schema = mongoose.Schema;
 //Create Shop Schema object
 const shopSchema = new Schema(
 	{
-		picture: { type: String, required: [true, 'Why no picture link?'] },
-		name: { type: String, required: [true, 'Why no name?'] },
-		email: { type: String, required: [true, 'Why no email?'] },
-		city: { type: String, required: [true, 'Why no city?'] },
+		picture: { type: String, required: [true, ' Picture required'] },
+		name: { type: String, required: [true, ' Name required'] },
+		email: { type: String, required: [true, ' Email required'] },
+		city: { type: String, required: [true, ' City required'] },
 		location: {
-			type: { type: String, required: [true, 'Why no type?'] },
+			type: { type: String, required: [true, ' Location required'] },
 			coordinates: {
 				type: [{ type: Number }],
-				validate: [arr => arr.length == 2, 'must be two coordinates'],
+				validate: [arr => arr.length == 2, ' Must be two coordinates'],
 			},
 		},
 	},
@@ -30,6 +30,12 @@ const Shop = (module.exports.Shop = mongoose.model('Shop', shopSchema));
 exports.createShop = (newShop, callback) => {
 	newShop.save(callback);
 };
+
+//Latiude Regex:
+const latRegex = /^-?([1-8]?[1-9]|[1-9]0)\.{1}\d{1,15}/g;
+
+//Longitude Regex:
+const lngRegex = /^-?(([-+]?)([\d]{1,3})((\.)(\d+))?)/g;
 
 //Select shops from MongoDB atlas based on parameters using mongoose
 exports.retrieveShops = (params, callback) => {
@@ -58,7 +64,14 @@ exports.retrieveShops = (params, callback) => {
 	let center = [];
 
 	if (params.location) {
-		center = params.location.split(',').map(ele => +ele);
+		center = params.location.split(',');
+		if (lngRegex.test(center[0]) && latRegex.test(center[1])) {
+			// set location if lng and lat match regex
+			center = center.map(ele => +ele);
+		} else {
+			//if location params are incorrect, defaults to center of Rabat
+			center = [-6.8498, 33.9716];
+		}
 	} else {
 		//if location not enabled by client, defaults to center of Rabat
 		center = [-6.8498, 33.9716];

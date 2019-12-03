@@ -1,5 +1,6 @@
 <template>
 	<div id="app">
+		<Navigation />
 		<router-view />
 	</div>
 </template>
@@ -7,8 +8,13 @@
 <script>
 import Swal from 'sweetalert2';
 
+import Navigation from '@/views/Navbar.vue';
+
 export default {
 	name: 'App',
+	components: {
+		Navigation,
+	},
 	created() {
 		if (!localStorage.getItem('token'))
 			Swal.fire(

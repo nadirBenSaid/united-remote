@@ -29,7 +29,15 @@ const router = express.Router();
 const shopModel = require('../models/shop');
 
 //Define email Regex
-const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const emailRegex = /^(?=[^@]*[A-Za-z])([a-zA-Z0-9])(([a-zA-Z0-9])*([\._-])?([a-zA-Z0-9]))*@(([a-zA-Z0-9\-])+(\.))+([a-zA-Z]{2,4})+$/i;
+
+//Name Regex
+
+const nameRegex = /^(([A-Za-z]+[\-\']?)*([A-Za-z]+)?\s)+([A-Za-z]+[\-\']?)*([A-Za-z]+)?$/;
+
+//Password Regex to make sure only ASCII characters are accepted
+
+const passwordRegex = /^\p{ASCII}+$/u;
 
 /*
  **
@@ -76,9 +84,13 @@ function errorHandler(res, userMessage, message, code) {
 //function used to signup new users
 function signupUser(req, res) {
 	let user = req.body;
-	//Validate email
-	if (!emailRegex.test(user.email)) {
-		errorHandler(res, 'invalid email format', 'invalid email', 422);
+	//Validate email, name and password
+	if (
+		!emailRegex.test(user.email) ||
+		!nameRegex.test(user.name) ||
+		!passwordRegex.test(user.password)
+	) {
+		errorHandler(res, 'invalid user data', 'invalid user data', 422);
 	} else {
 		//Define empty array attributes for liked and disliked shops
 		user.likes = [];
@@ -124,21 +136,33 @@ function persistUser(newUser, res) {
 
 //Attempt to login user if password is verified
 function loginUser(req, res) {
-	//Retrieve User password from database
-	userModel.retrieveUser(req.body.email, (dbErr, doc) => {
-		doc = doc[0];
-		if (!dbErr && doc) {
-			verifyPassword(req, res, doc);
-		} else {
-			//unexistent email error
-			errorHandler(
-				res,
-				'Email or password are wrong',
-				'email unfound',
-				404
-			);
-		}
-	});
+	if (
+		emailRegex.test(req.body.email) ||
+		passwordRegex.test(req.body.password)
+	) {
+		//Retrieve User password from database
+		userModel.retrieveUser(req.body.email, (dbErr, doc) => {
+			doc = doc[0];
+			if (!dbErr && doc) {
+				verifyPassword(req, res, doc);
+			} else {
+				//unexistent email error
+				errorHandler(
+					res,
+					'Email or password are wrong',
+					'email unfound',
+					401
+				);
+			}
+		});
+	} else {
+		errorHandler(
+			res,
+			'Email or password are in an invalid formt',
+			'invalid data',
+			422
+		);
+	}
 }
 
 //Password verification
@@ -153,7 +177,7 @@ function verifyPassword(req, res, doc) {
 				res,
 				'Email or password are wrong',
 				'Wrong password',
-				404
+				401
 			);
 		}
 	});
@@ -250,7 +274,7 @@ function returnPayload(doc, req, res) {
 				errorHandler(res, 'internal server error', err, 500);
 			} else {
 				if (docs.length === 0) {
-					res.sendStatus(404);
+					res.sendStatus(204);
 				} else {
 					//Return payload containing prefered shops
 					res.status(200).json(docs);
@@ -272,8 +296,11 @@ function updateShopPreference(payload, req, res) {
 	userModel.likeOrDislikeShop(payload._id, req, (err, doc) => {
 		if (!err) {
 			if (doc) {
-				//return a payload containing updated user
-				res.status(200).json(doc);
+				//return a payload containing updated user's likes and dislikes
+				res.status(200).json({
+					likes: doc.likes,
+					dislikes: doc.dislikes,
+				});
 			} else {
 				//error for doc not found
 				res.sendStatus(404);

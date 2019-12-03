@@ -8,13 +8,13 @@ const timestampModel = require('./timestamp');
 //Create User Schema object
 const userSchema = new Schema(
 	{
-		name: { type: String, required: [true, 'why no name?'] },
+		name: { type: String, required: [true, ' Name required'] },
 		email: {
 			type: String,
 			unique: true,
-			required: [true, 'why no email?'],
+			required: [true, ' Email required'],
 		},
-		password: { type: String, required: [true, 'why no password?'] },
+		password: { type: String, required: [true, ' Password required'] },
 		likes: [{ type: ObjectId, ref: 'Shop' }],
 		dislikes: [
 			{
@@ -94,22 +94,16 @@ function dislikesInclude(user, req) {
 function updateUserPreferences(_id, req, callback) {
 	//retrieve user
 	retrieveUserById(_id, (err, user) => {
-		if (!err) {
-			//insert into likes if not already in likes/dislikes
-			if (
-				!dislikesInclude(user, req) &&
-				!user.likes.includes(req.params.shopId) &&
-				req.body.up
-			) {
+		if (
+			!err &&
+			!dislikesInclude(user, req) &&
+			!user.likes.includes(req.params.shopId)
+		) {
+			if (req.body.up) {
+				//insert into likes if not already in likes/dislikes
 				user.likes.push(req.params.shopId);
-			}
-
-			//insert into dislikes if not already in likes/dislikes
-			if (
-				!dislikesInclude(user, req) &&
-				!user.likes.includes(req.params.shopId) &&
-				!req.body.up
-			) {
+			} else {
+				//insert into dislikes if not already in likes/dislikes
 				let timestamp = new timestampModel.Timestamp();
 				timestamp.save();
 				user.dislikes.push({
@@ -117,15 +111,16 @@ function updateUserPreferences(_id, req, callback) {
 					_time: timestamp._id,
 				});
 			}
-
+		} else if (
+			!err &&
+			user.likes.includes(req.params.shopId) &&
+			!req.body.up
+		) {
 			//remove from likes if already in likes
-			if (user.likes.includes(req.params.shopId) && !req.body.up) {
-				user.likes = user.likes.filter(ele => ele != req.params.shopId);
-			}
-
-			// persist changes
-			user.save();
+			user.likes = user.likes.filter(ele => ele != req.params.shopId);
 		}
+		// persist changes
+		user.save();
 		callback(err, user);
 	});
 }

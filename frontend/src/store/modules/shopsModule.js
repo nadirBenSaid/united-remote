@@ -44,6 +44,7 @@ let state = getDefaultState();
 //module getters
 const getters = {
 	// getter of login state
+	// !! returns true if there is a token stored
 	isLoggedIn: state => !!state.token,
 	// getter of token
 	getToken: state => state.token,
@@ -132,9 +133,9 @@ const actions = {
 					Swal.fire({
 						title: "We can't get your location",
 						text:
-							"User's location is defaulted to center of Rabat, we don't save your location info so maybe change your mind?",
+							"User's location is defaulted to center of Rabat, If you're using the remote version of the website, we can't get your position without HTTPS due to browser policies",
 						icon: 'info',
-						confirmButtonText: "I'll think about it...",
+						confirmButtonText: 'Okay',
 					});
 				}
 				//initiate first fetch without location (defaults in backend
