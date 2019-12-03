@@ -134,7 +134,7 @@ const actions = {
 						title: "We can't get your location",
 						text:
 							"User's location is defaulted to center of Rabat, If you're using the remote version of the website, we can't get your position without HTTPS due to browser policies",
-						icon: 'info',
+						icon: 'warning',
 						confirmButtonText: 'Okay',
 					});
 				}

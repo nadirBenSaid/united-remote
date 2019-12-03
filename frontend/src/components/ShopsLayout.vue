@@ -1,11 +1,8 @@
 <template>
 	<mdb-container>
-		<div v-for="(shops, index) in this.chunk(allShops, 4)" :key="index">
-			<mdb-row>
-				<shop-card v-for="shop in shops" :key="shop._id" :shop="shop" />
-			</mdb-row>
-			<br />
-		</div>
+		<transition-group name="list">
+			<shop-card v-for="shop in allShops" :key="shop._id" :shop="shop" />
+		</transition-group>
 		<section
 			v-if="totalCount != allShops.length"
 			v-observe-visibility="
@@ -24,7 +21,7 @@
 
 <script>
 import ShopCard from '@/components/ShopCard.vue';
-import { mdbContainer, mdbRow } from 'mdbvue';
+import { mdbContainer } from 'mdbvue';
 
 //Importing Getters and Actions mappers to manipulate vuex state
 import { mapGetters, mapActions } from 'vuex';
@@ -39,7 +36,6 @@ export default {
 	},
 	components: {
 		mdbContainer,
-		mdbRow,
 		ShopCard,
 	},
 	methods: {
@@ -55,15 +51,6 @@ export default {
 				});
 			}
 		},
-
-		//function to slice array
-		//example: [1,2,3,4,5,6] --> [[1,2,3,4],[5,6]]
-		chunk: (arr, size) => {
-			return Array.from(
-				{ length: Math.ceil(arr.length / size) },
-				(v, i) => arr.slice(i * size, i * size + size)
-			);
-		},
 	},
 	mounted() {
 		//get user location, and display first 16 shops if there are shops
@@ -78,5 +65,18 @@ export default {
 <style scoped>
 h4 {
 	margin: 0;
+}
+span {
+	display: flex;
+	flex-wrap: wrap;
+}
+.list-enter-active,
+.list-leave-active {
+	transition: all 1s;
+}
+.list-enter,
+.list-leave-to {
+	opacity: 0;
+	transform: translateY(30px);
 }
 </style>

@@ -32,7 +32,9 @@
 							/>
 						</div>
 						<div class="text-center py-4 mt-3">
-							<mdb-btn color="cyan">Register</mdb-btn>
+							<mdb-btn gradient="winter-neva" class="black-text"
+								>Register</mdb-btn
+							>
 						</div>
 					</form>
 				</mdb-card-body>
@@ -61,7 +63,9 @@
 							/>
 						</div>
 						<div class="text-center py-4 mt-3">
-							<mdb-btn>Login</mdb-btn>
+							<mdb-btn gradient="frozen-dreams" class="black-text"
+								>Login</mdb-btn
+							>
 						</div>
 					</form>
 				</mdb-card-body>

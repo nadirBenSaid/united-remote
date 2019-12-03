@@ -5,19 +5,23 @@
 			v-if="isLoggedIn"
 			v-show="navbarType == 'regular-fixed'"
 			position="top"
-			dark
-			color="indigo"
+			light
+			color="cloudy-knoxville-gradient"
 			scrolling
 		>
 			<mdb-navbar-brand>Shoppy</mdb-navbar-brand>
 			<mdb-navbar-toggler>
 				<mdb-navbar-nav>
-					<mdb-nav-item to="/" active>Nearby Shops</mdb-nav-item>
-					<mdb-nav-item to="/liked">Liked Shops</mdb-nav-item>
+					<mdb-nav-item id="root" to="/" active darkWaves
+						>Nearby Shops</mdb-nav-item
+					>
+					<mdb-nav-item id="liked" to="/liked" darkWaves
+						>Liked Shops</mdb-nav-item
+					>
 				</mdb-navbar-nav>
 				<mdb-navbar-nav right>
 					<a v-on:click="logout()">
-						<mdb-nav-item waves-fixed>Logout</mdb-nav-item>
+						<mdb-nav-item darkWaves>Logout</mdb-nav-item>
 					</a>
 				</mdb-navbar-nav>
 			</mdb-navbar-toggler>

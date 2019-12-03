@@ -16,12 +16,14 @@ export default {
 		Navigation,
 	},
 	created() {
-		if (!localStorage.getItem('token'))
-			Swal.fire(
-				'Welcome!',
-				'Please start by either signing up or signing in to experience the website',
-				'info'
-			);
+		if (!localStorage.getItem('token')) {
+			Swal.fire({
+				title: 'Welcome!',
+				text:
+					'We invite you to signup or login in order to experience the website',
+				icon: 'info',
+			});
+		}
 	},
 };
 </script>
@@ -37,9 +39,9 @@ export default {
 	-moz-osx-font-smoothing: grayscale;
 	text-align: center;
 	color: #2c3e50;
-	background: aliceblue;
+	background: #eceeef;
 }
 body {
-	background: aliceblue;
+	background: #eceeef;
 }
 </style>
