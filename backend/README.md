@@ -67,7 +67,7 @@ docker pull bensaidnadir/united-remote-backend:latest
 then proceed to run a Docker container using the command:
 
 ```bash
-docker run [IMAGE_NAME]:[TAG]
+docker run -p 3000:3000 -d [IMAGE_NAME]:[TAG]
 ```
 
 This will expose the project to port `3000` on your machine.
@@ -168,7 +168,7 @@ This endpoint is used to bulk retrieve shops, it doesn't require any special `HT
 | `location` |  `longitude,latitude`   | This parameter represents the center of a circle, it is used by the backend to return shops sorted nearest first. **Example:** `shops?location=-6.82,33.86` where `-6.82` is longitude and `33.86` is latitude. if no location query parameter sent, the location defaults to `-6.8498, 33.9716` (center of Rabat). _This feature **is** implemented in the Vue app._                                              |
 | `distance` |        `number`         | This parameter defines the radius of a circle which center is the `location`, the server will only return shops that exist within this circle. **Example:** `shops?distance=1500` will define a radius of 1.5 Km from the center. if this parameter is undefined the server defaults it to a 10 Km radius. _This feature **is not** implemented in the Vue app_ but it is still defaulted to 10 Km in the backend. |
 | `limit`    |        `number`         | this parameter only works with `skip`, together they allow users to batch request shops. **Example:** `shops?skip=4&limit=16` will skip first 4 shops then return the following 16 shops. _this feature **is** implemented in the Vue app._                                                                                                                                                                        |
-| `skip`     |        `number`         | this parameter only works with `limit`, vue `limit` for details on usage.                                                                                                                                                                                                                                                                                                                                          |
+| `skip`     |        `number`         | this parameter only works with `limit`, see `limit` for details on usage.                                                                                                                                                                                                                                                                                                                                          |
 | `fields`   | list of `String` fields | this parameter defines the shop fields to return. By default, the server returns `_id`, `name`, `city` and `picture`. **Example:** `shops?fields=name,picture` will return a list of shops with the fields `_id`, `name` and `picture`. this can take any combination of fields and `_id` is always present. _this feature **is not** implemented in the Vue app._                                                 |  |
 
 #### Example:
@@ -213,7 +213,7 @@ This returns a `JSON` file with three fields: `error` that is set to null, `docs
 
 -- `POST /api/v1/shops`
 
-This endpoint is used to create a new Shop, it requires a `Content-Type: application/json` HTTP header. the request to this endpoint should be accompanied with a payload `JSON` containing all Shop's fields except for the `_id`, the absence of a field would result in a response with a `422 HTTP status` containing the missing fields. Request success results in a `201 HTTP status` response with a payload containing the new Shop. _This feature **is not** implemented in Vue app._
+This endpoint is used to create a new Shop, it requires a `Content-Type: application/json` HTTP header. the request to this endpoint should be accompanied with a payload `JSON` containing all Shop's fields except for the `_id`, the absence of a field would result in a response with a `200 HTTP status` containing the missing fields. Request success results in a `201 HTTP status` response with a payload containing the new Shop. _This feature **is not** implemented in Vue app._
 
 #### Example:
 
@@ -288,7 +288,7 @@ Response payload:
 
 -- `PUT /api/v1/shops/[id]`
 
-This endpoint is used to update a shop's data, it requires a `Content-Type: application/json` HTTP header. the request to this endpoint should be accompanied with a `JSON` payload containing all fields that need to be updated alongside their values, a bad payload would result in an `422 HTTP status`. if the shop doesn't exist it returns a `404 status code`. Request success results in a `200 HTTP status` response with a payload containing the updated Shop's `_id`. _This feature **is not** implemented in Vue app._
+This endpoint is used to update a shop's data, it requires a `Content-Type: application/json` HTTP header. the request to this endpoint should be accompanied with a `JSON` payload containing all fields that need to be updated alongside their values, a bad payload would result in an `400 HTTP status`. if the shop doesn't exist it returns a `404 status code`. Request success results in a `200 HTTP status` response with a payload containing the updated Shop's `_id`. _This feature **is not** implemented in Vue app._
 
 #### Example:
 
@@ -337,7 +337,13 @@ All of the following features are included in the Vue app:
 
 -- `POST /api/v1/users`
 
-This endpoint allows the creation of new users (signup), it takes a `JSON` payload containing user fields; `name`, `email` and `password`. The server then creates a `JSON Web Token` and returns it as a payload with a `201 status code`. If the fields are not conformable or there is an error, The server returns either a `422` or `500 status error` accordingly.
+This endpoint allows the creation of new users (signup), it takes a `JSON` payload containing user fields; `name`, `email` and `password`. The server then creates a `JSON Web Token` and returns it as a payload with a `201 status code`. If the fields are not conformable or there is an error, The server returns either a `400 error` a `500 error` or `200 status code` with a `Failed to create this User.` error message accordingly.
+
+| User Fields | Accepted Values                                             | RegEx                                                                                                                |
+| ----------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `name`      | This accepts any form of `String` as long as it's not empty | -                                                                                                                    |
+| `email`     | This only accepts valid email format                        | `/^(?=[^@]*[A-Za-z])([a-zA-Z0-9])(([a-zA-Z0-9])*([\._-])?([a-zA-Z0-9]))*@(([a-zA-Z0-9\-])+(\.))+([a-zA-Z]{2,4})+$/i` |
+| `Password`  | This only accepts `ASCII` characters, it can't be empty     | `/^\p{ASCII}+$/u`                                                                                                    |
 
 #### Example:
 
@@ -363,7 +369,9 @@ Response Payload:
 
 -- `POST /api/v1/users/login`
 
-This endpoint returns a user's token (login), it takes a `JSON` payload containing user fields; `email` and `password`. The server then creates a `JSON Web Token` and returns it as a payload with a `200 status code`. If the `email` or `password` are wrong or there is an error, The server returns either a `404` or `500 status error` accordingly.
+This endpoint returns a user's token (login), it takes a `JSON` payload containing user fields; `email` and `password`. The server then creates a `JSON Web Token` and returns it as a payload with a `200 status code`.
+
+If the `email` or `password` are wrong, the server returns a `401 status code` with an error. If the `email` or `password` formats are invalid, the server returns a `400 bad request` error. The server cam return a `500 status error` in case of an internal error.
 
 #### Example:
 
@@ -392,7 +400,7 @@ This endpoint has two possible uses:
 
 -   **Case 1:** it can be used to return arrays containing user's liked and disliked shops `_id`s. this is used to filter those shops from the Nearby Shops page in the Vue app.
 
--   **Case 2:** it can be used to return an array containing the details of a user's liked shops. if there are no liked shops, the server returns a `404 status code` This is used in the preferred shops page in the Vue app.
+-   **Case 2:** it can be used to return an array containing the details of a user's liked shops. if there are no liked shops, the server returns a `204 status code` This is used in the preferred shops page in the Vue app.
 
 To differentiate the use cases, we add a `liked=true` as a query parameter to let the server know that we want the second use case. both use cases require an Authorization header in the following form:
 
@@ -400,7 +408,7 @@ To differentiate the use cases, we add a `liked=true` as a query parameter to le
 Authorization: Bearer [token]
 ```
 
-if there is no `Authorization` header included, the server returns a `403 status code`.
+if there is no `Authorization` header included, the server returns a `401 status code`.
 
 #### Examples:
 
@@ -523,22 +531,24 @@ This endpoint is used to move a Shop between a user's likes and dislikes, which 
 -   To like a shop, it needs to not be in the dislikes nor likes. You also need to accompany the request with the following payload:
 
 ```json
-{ "up": true }
+{ "like": true }
 ```
 
 -   To dislike a shop, it needs to not be in the dislikes nor likes. You also need to accompany the request with the following payload:
 
 ```json
-{ "up": false }
+{ "dislike": true }
 ```
 
 -   To remove a shop from likes, it needs to be likes. You also need to accompany the request with the following payload:
 
 ```json
-{ "up": false }
+{ "remove": true }
 ```
 
-requests to this endpoint should have the `Authorization` header same as previous request.
+requests to this endpoint should have the `Authorization` header same as previous request. Also if no `Content-Type: application/json` is present, the user's preferences will not be updated.
+
+**Note:** If the payload contains both `like` and `dislike` fields, and shop is a neutral shop, the priority is to `like`.
 
 #### Examples:
 
@@ -553,7 +563,7 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZGUxNmNlYjJlMWY3MzRiMWVjZTRiYTQiLCJpYXQiOjE1NzUyNzA1MTh9.KvSa9uC2DKmAKYWdoo3Mn_lA8nwp_mRf-YzaSTeEOHeIqU3kxeAvtKtBy6VnRD3Fg_rtqJDoXCvUnxfrGk7ehmRPMGHbrf8FaS18ZZqjxsMNbzKo4YPfvs3sELRckLB-u5REU7_B92u99VfB77ufQBFTgx4LFnbeaPpYkuSs96zT1PEE7G-OfPEDt3vNy9eD3D9v2WW8fBsrUYryOJP8_RuvQ2Or-lRP-SDFMEPN2lU3pppKcxs1_3-jTmwkumdc9WG_N1T9ZcBqHWG8ddW7Xrl5WssumDPa-CzCGpaAHwyv17VZRDDpRH7Jn3Y9saine50mUNdtd1AvOmxkdndatsOjCmfLegzT5RD5IZH1tZkF-a6yq5ZWWBMJBvVY_N29rCHV-ON-ednx8uKfHj0bLPT1_nREIfVArFKcvajda4ZvWSa57ivx_d0OThZQ6hg_gAcNqxs2aNh9BhetzvIDtuDWrdmO9P-jcCu3z4O2cIRH-ZpIje0i-H85EiOnDshIL1ojkd1Ra30mcaTjw2zbIp8dX60-Jsv6l4wt5dyVzoItEj3S5KQC4lOCkRUPKlBzgaj5fh2G-3qnks1XZEBnS35KvWNC2GJ5YUUMiwWNbPprJGTa99RqdoMB_NSsYMCcYSBO6zlYyys-lB0s6GZU0zmvFzr9al7zw8t5CQLCoNA
 
 {
-	"up" : true
+	"like" : true
 }
 ```
 
@@ -568,7 +578,7 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZGUxNmNlYjJlMWY3MzRiMWVjZTRiYTQiLCJpYXQiOjE1NzUyNzA1MTh9.KvSa9uC2DKmAKYWdoo3Mn_lA8nwp_mRf-YzaSTeEOHeIqU3kxeAvtKtBy6VnRD3Fg_rtqJDoXCvUnxfrGk7ehmRPMGHbrf8FaS18ZZqjxsMNbzKo4YPfvs3sELRckLB-u5REU7_B92u99VfB77ufQBFTgx4LFnbeaPpYkuSs96zT1PEE7G-OfPEDt3vNy9eD3D9v2WW8fBsrUYryOJP8_RuvQ2Or-lRP-SDFMEPN2lU3pppKcxs1_3-jTmwkumdc9WG_N1T9ZcBqHWG8ddW7Xrl5WssumDPa-CzCGpaAHwyv17VZRDDpRH7Jn3Y9saine50mUNdtd1AvOmxkdndatsOjCmfLegzT5RD5IZH1tZkF-a6yq5ZWWBMJBvVY_N29rCHV-ON-ednx8uKfHj0bLPT1_nREIfVArFKcvajda4ZvWSa57ivx_d0OThZQ6hg_gAcNqxs2aNh9BhetzvIDtuDWrdmO9P-jcCu3z4O2cIRH-ZpIje0i-H85EiOnDshIL1ojkd1Ra30mcaTjw2zbIp8dX60-Jsv6l4wt5dyVzoItEj3S5KQC4lOCkRUPKlBzgaj5fh2G-3qnks1XZEBnS35KvWNC2GJ5YUUMiwWNbPprJGTa99RqdoMB_NSsYMCcYSBO6zlYyys-lB0s6GZU0zmvFzr9al7zw8t5CQLCoNA
 
 {
-	"up" : false
+	"remove" : true
 }
 ```
 
@@ -583,11 +593,11 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZGUxNmNlYjJlMWY3MzRiMWVjZTRiYTQiLCJpYXQiOjE1NzUyNzA1MTh9.KvSa9uC2DKmAKYWdoo3Mn_lA8nwp_mRf-YzaSTeEOHeIqU3kxeAvtKtBy6VnRD3Fg_rtqJDoXCvUnxfrGk7ehmRPMGHbrf8FaS18ZZqjxsMNbzKo4YPfvs3sELRckLB-u5REU7_B92u99VfB77ufQBFTgx4LFnbeaPpYkuSs96zT1PEE7G-OfPEDt3vNy9eD3D9v2WW8fBsrUYryOJP8_RuvQ2Or-lRP-SDFMEPN2lU3pppKcxs1_3-jTmwkumdc9WG_N1T9ZcBqHWG8ddW7Xrl5WssumDPa-CzCGpaAHwyv17VZRDDpRH7Jn3Y9saine50mUNdtd1AvOmxkdndatsOjCmfLegzT5RD5IZH1tZkF-a6yq5ZWWBMJBvVY_N29rCHV-ON-ednx8uKfHj0bLPT1_nREIfVArFKcvajda4ZvWSa57ivx_d0OThZQ6hg_gAcNqxs2aNh9BhetzvIDtuDWrdmO9P-jcCu3z4O2cIRH-ZpIje0i-H85EiOnDshIL1ojkd1Ra30mcaTjw2zbIp8dX60-Jsv6l4wt5dyVzoItEj3S5KQC4lOCkRUPKlBzgaj5fh2G-3qnks1XZEBnS35KvWNC2GJ5YUUMiwWNbPprJGTa99RqdoMB_NSsYMCcYSBO6zlYyys-lB0s6GZU0zmvFzr9al7zw8t5CQLCoNA
 
 {
-	"up" : false
+	"dislike" : true
 }
 ```
 
-**All of these requests return the updated user as a `JSON` payload:**
+**All of these requests return the updated user's likes and dislikes as a `JSON` payload:**
 
 ```json
 {
@@ -598,10 +608,6 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZGUxNmNlY
 		"5a0c689efd3eb67969316d58",
 		"5a0c6bd5fd3eb67969316ded"
 	],
-	"_id": "5de16ceb2e1f734b1ece4ba4",
-	"email": "a@gmail.com",
-	"password": "$2b$10$TawGdMbKvQvYsMxO0Yr7a.ZdLUNGxTfsbYLXFtDyxvBHHh2.nDeKu",
-	"name": "ben",
 	"dislikes": [
 		{
 			"_id": "5a0c67cafd3eb67969316cee",

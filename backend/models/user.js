@@ -36,7 +36,7 @@ exports.createUser = (newUser, callback) => {
 
 //Retrieve user from MongoDB atlas
 exports.retrieveUser = (email, callback) => {
-	User.find({ email }, 'password', { limit: 1 }, callback);
+	User.find({ email }, 'password', callback);
 };
 
 //Retrieve user by id
@@ -59,14 +59,10 @@ const retrieveUserById = (exports.retrieveUserById = (_id, callback) => {
 exports.likeOrDislikeShop = (_id, req, callback) => {
 	//verify whether shop exists in DB
 	shopModel.retrieveShop(req.params.shopId, (err, doc) => {
-		if (err) {
-			console.log(err);
+		if (err || !doc) {
+			callback(err, doc);
 		} else {
-			if (!doc) {
-				callback(err, doc);
-			} else {
-				updateUserPreferences(_id, req, callback);
-			}
+			updateUserPreferences(_id, req, callback);
 		}
 	});
 };
@@ -82,7 +78,7 @@ function dislikesInclude(user, req) {
 	let test = false;
 
 	//Sets test to true if shop in dislikes
-	user.dislikes.map(ele => {
+	user.dislikes.forEach(ele => {
 		if (ele._id == req.params.shopId) {
 			test = true;
 		}
@@ -94,33 +90,28 @@ function dislikesInclude(user, req) {
 function updateUserPreferences(_id, req, callback) {
 	//retrieve user
 	retrieveUserById(_id, (err, user) => {
-		if (
-			!err &&
-			!dislikesInclude(user, req) &&
-			!user.likes.includes(req.params.shopId)
-		) {
-			if (req.body.up) {
-				//insert into likes if not already in likes/dislikes
+		const shopInDislikes = dislikesInclude(user, req);
+		const shopInlikes = user.likes.includes(req.params.shopId);
+
+		if (!err && !shopInDislikes) {
+			if (!shopInlikes && req.body.like) {
+				//insert into likes if shop not in likes/dislikes
 				user.likes.push(req.params.shopId);
-			} else {
-				//insert into dislikes if not already in likes/dislikes
+			} else if (!shopInlikes && req.body.dislike) {
+				//insert into dislikes if shop not in likes/dislikes
 				let timestamp = new timestampModel.Timestamp();
 				timestamp.save();
 				user.dislikes.push({
 					_id: req.params.shopId,
 					_time: timestamp._id,
 				});
+			} else if (shopInlikes && req.body.remove) {
+				//remove from likes if shop in likes
+				user.likes = user.likes.filter(ele => ele != req.params.shopId);
 			}
-		} else if (
-			!err &&
-			user.likes.includes(req.params.shopId) &&
-			!req.body.up
-		) {
-			//remove from likes if already in likes
-			user.likes = user.likes.filter(ele => ele != req.params.shopId);
+			// persist changes
+			user.save();
 		}
-		// persist changes
-		user.save();
 		callback(err, user);
 	});
 }

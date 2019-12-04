@@ -21,7 +21,7 @@ router
 					res,
 					err.message,
 					'Failed to create new Shop.',
-					422
+					200
 				);
 			} else {
 				res.status(201).json(doc);
@@ -38,14 +38,10 @@ router
 					res,
 					err.message,
 					'Failed to retrieve shops.',
-					422
+					200
 				);
 			} else {
-				if (resp.docs.length === 0) {
-					res.status(404).json(resp);
-				} else {
-					res.status(200).json(resp);
-				}
+				res.status(200).json(resp);
 			}
 		});
 	});
@@ -57,14 +53,10 @@ router
 	//http GET to retrieve shop details by id
 	.get((req, res) => {
 		shopModel.retrieveShop(req.params.id, (err, resp) => {
-			if (err) {
-				errorHandler(res, err.message, 'Failed to retrieve shop.', 422);
+			if (err || !resp) {
+				errorHandler(res, 'Shop not found.', err, 404);
 			} else {
-				if (!resp) {
-					res.status(404).json(resp);
-				} else {
-					res.status(200).json(resp);
-				}
+				res.status(200).json(resp);
 			}
 		});
 	})
@@ -74,13 +66,11 @@ router
 		_id = req.params.id;
 		shopModel.updateShop(_id, req.body, (err, doc) => {
 			if (err) {
-				errorHandler(res, err.message, 'Failed to update Shop.', 422);
+				errorHandler(res, 'Shop not found.', err, 404);
+			} else if (doc.n === 0) {
+				errorHandler(res, 'Bad request', err, 400);
 			} else {
-				if (doc.n === 0) {
-					res.status(404).send();
-				} else {
-					res.status(200).json(_id);
-				}
+				res.status(200).json(_id);
 			}
 		});
 	})
@@ -89,14 +79,10 @@ router
 	.delete((req, res) => {
 		_id = req.params.id;
 		shopModel.deleteShop(_id, (err, doc) => {
-			if (err) {
-				errorHandler(res, err.message, 'Failed to delete Shop.', 422);
+			if (err || doc.n === 0) {
+				errorHandler(res, 'Shop not found.', err, 404);
 			} else {
-				if (doc.n === 0) {
-					res.status(404).send();
-				} else {
-					res.status(200).json(_id);
-				}
+				res.status(200).json(_id);
 			}
 		});
 	});

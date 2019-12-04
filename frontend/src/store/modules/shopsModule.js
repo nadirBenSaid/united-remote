@@ -60,8 +60,6 @@ const getters = {
 	totalCount: state => state.totalCount,
 	// getter of number of excluded shops from home
 	getHidden: state => state.hiddenCount,
-	//getter for skipping
-	getSkip: state => state.fetchRounds,
 	//getter for liked shops
 	getLikedShops: state => state.likedShops,
 };
@@ -83,11 +81,19 @@ const actions = {
 				.then(response => commit('setToken', response.data))
 				//log error
 				.catch(err => {
-					Swal.fire(
-						'Try again!',
-						'The data you entered is invalid',
-						'error'
-					);
+					if (err.response.status == 400) {
+						Swal.fire(
+							'Try again!',
+							'Invalid data format.',
+							'error'
+						);
+					} else if (err.response.status == 409) {
+						Swal.fire(
+							'Try again!',
+							'Email already exists.',
+							'error'
+						);
+					}
 				});
 		}
 	},
@@ -123,8 +129,7 @@ const actions = {
 					pos.coords.longitude + ',' + pos.coords.latitude
 				);
 				//initiate first shop fetch
-				if (state.fetchedCount == 0)
-					actions.fetchShops({ commit }, { skip: 0, limit: 16 });
+				if (state.fetchedCount == 0) actions.fetchShops({ commit });
 			},
 			// error callback
 			err => {
@@ -137,32 +142,44 @@ const actions = {
 						icon: 'warning',
 						confirmButtonText: 'Okay',
 					});
+					//initiate first fetch without location (defaults in backend
+					// to center of Rabat)
+					if (state.fetchedCount == 0) actions.fetchShops({ commit });
 				}
-				//initiate first fetch without location (defaults in backend
-				// to center of Rabat)
-				if (state.fetchedCount == 0)
-					actions.fetchShops({ commit }, { skip: 0, limit: 16 });
 			}
 		);
 	},
 
 	// function to fetch shops from API
-	fetchShops({ commit }, params) {
+	fetchShops({ commit }) {
 		// call to function responsible of
-		// retrievig liked/disliked shop IDs
-		actions.fetchUserShops({ commit });
+		// retrieving user's liked/disliked shop IDs
+		actions
+			.fetchUserShops()
+			// commit mutation
+			.then(res => commit('setShops', res.data))
+			//handle error
+			.catch(err =>
+				Swal.fire(
+					'Error',
+					"Something wrong happened and we can't seem to retrieve the shops",
+					'error'
+				)
+			);
 
-		//turn object params to query params
-		let queryParams = Object.entries(params)
-			.map(([key, val]) => `${key}=${val}`)
-			.join('&');
-
-		//add user location if permission granted
-		queryParams += state.location ? `&location=${state.location}` : '';
+		//Create user's location query param if permission granted
+		const queryLocation = state.location
+			? `&location=${state.location}`
+			: '';
 
 		//send get HTTP request and fetch data from response
 		axios
-			.get(`${process.env.VUE_APP_URL}/api/v1/shops?${queryParams}`)
+			.get(
+				`${
+					process.env.VUE_APP_URL
+				}/api/v1/shops?skip=${state.fetchRounds *
+					16}&limit=16${queryLocation}`
+			)
 			// commit mutation
 			.then(res => {
 				// filter liked disliked shops from fetched
@@ -194,22 +211,11 @@ const actions = {
 	},
 
 	// function to fetch liked/disliked shops from API
-	fetchUserShops({ commit }) {
+	async fetchUserShops() {
 		//set Authorization header
 		axios.defaults.headers.common['Authorization'] = state.token;
 		//send get HTTP request and fetch data from response
-		axios
-			.get(`${process.env.VUE_APP_URL}/api/v1/users/shops`)
-			// commit mutation
-			.then(res => commit('setShops', res.data))
-			//handle error
-			.catch(err =>
-				Swal.fire(
-					'Error',
-					"Something wrong happened and we can't seem to retrieve the shops",
-					'error'
-				)
-			);
+		return await axios.get(`${process.env.VUE_APP_URL}/api/v1/users/shops`);
 	},
 
 	// logout function
@@ -229,7 +235,7 @@ const actions = {
 		//send put request to alter user likes
 		axios
 			.put(`${process.env.VUE_APP_URL}/api/v1/users/shops/${id}`, {
-				up: true,
+				like: true,
 			})
 			// promise success:
 			.then(user => {
@@ -255,7 +261,7 @@ const actions = {
 		//send put request to alter user dislikes
 		axios
 			.put(`${process.env.VUE_APP_URL}/api/v1/users/shops/${id}`, {
-				up: false,
+				dislike: true,
 			})
 			// success callback
 			.then(user => {
@@ -298,7 +304,7 @@ const actions = {
 		//send put request to alter user likes
 		axios
 			.put(`${process.env.VUE_APP_URL}/api/v1/users/shops/${id}`, {
-				up: false,
+				remove: true,
 			})
 			// success callback
 			.then(user => {
@@ -322,6 +328,7 @@ const actions = {
 const mutations = {
 	//set token then store it in local storage
 	setToken: (state, data) => {
+		console.log(data);
 		state.token = 'Bearer ' + data;
 		localStorage.setItem('token', state.token);
 		router.push('/');

@@ -32,10 +32,24 @@ exports.createShop = (newShop, callback) => {
 };
 
 //Latiude Regex:
-const latRegex = /^-?([1-8]?[1-9]|[1-9]0)\.{1}\d{1,15}/g;
+const latRegex = /^-?([1-8]?[1-9]|[1-9]0)\.{1}\d{1,15}/;
 
 //Longitude Regex:
-const lngRegex = /^-?(([-+]?)([\d]{1,3})((\.)(\d+))?)/g;
+const lngRegex = /^-?(([-+]?)([\d]{1,3})((\.)(\d+))?)/;
+
+//Functions that validates int parameters
+// this useful in case a user sends a string or
+// a long numerical string as a parameter
+// we wouldn't want to cast into a Number and take the
+// risk hence the bitwise operators
+
+function min(a, b) {
+	return b ^ ((a ^ b) & -(a < b));
+}
+
+function max(a, b) {
+	return a ^ ((a ^ b) & -(a < b));
+}
 
 //Select shops from MongoDB atlas based on parameters using mongoose
 exports.retrieveShops = (params, callback) => {
@@ -56,26 +70,29 @@ exports.retrieveShops = (params, callback) => {
 
 	//Define desired document attributes
 	if (params.fields) {
-		fields = params.fields.split(',').join(' ');
+		fields = params.fields.replace(',', ' ');
 	}
 
-	//Geo Sort by location and filter by distance
+	//if location not enabled by client, defaults to center of Rabat
 
-	let center = [];
+	let center = [-6.8498, 33.9716];
 
 	if (params.location) {
-		center = params.location.split(',');
+		// separate coordinates and limit length
+		center = params.location
+			.split(',')
+			.map(ele => (ele.length > 8 ? ele.substring(0, 8) : ele));
+
 		if (lngRegex.test(center[0]) && latRegex.test(center[1])) {
 			// set location if lng and lat match regex
 			center = center.map(ele => +ele);
 		} else {
-			//if location params are incorrect, defaults to center of Rabat
-			center = [-6.8498, 33.9716];
+			//if location params are incorrect
+			callback({ message: 'wrong location params' }, {});
+			return;
 		}
-	} else {
-		//if location not enabled by client, defaults to center of Rabat
-		center = [-6.8498, 33.9716];
 	}
+
 	criteria.location = {
 		$near: {
 			$geometry: {
@@ -85,15 +102,14 @@ exports.retrieveShops = (params, callback) => {
 		},
 	};
 
-	//if no circle radius defined, defaults to a 10 km radius
-	criteria.location.$near.$maxDistance = params.distance
-		? +params.distance
-		: 10000;
+	// if no circle radius defined, or more than 10 km
+	// defaults to a 10 km radius
+	criteria.location.$near.$maxDistance = min(params.distance, 10000);
 
 	//Check pagination parameters
 	if (params.limit && params.skip) {
-		pagination.skip = +params.skip;
-		pagination.limit = +params.limit;
+		pagination.skip = max(params.skip, 0);
+		pagination.limit = min(params.limit, 160);
 	}
 
 	//Register listener on Shop.count and call callback if Shop.find is ready

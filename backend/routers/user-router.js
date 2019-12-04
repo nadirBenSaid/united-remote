@@ -17,6 +17,8 @@ const saltRounds = 10;
 
 //Import file system and read private and public keys
 const fs = require('fs');
+
+// The keys chmod should be READ ONLY
 const privateKey = fs.readFileSync(ENV.PRIVATE_KEY);
 const publicKey = fs.readFileSync(ENV.PUBLIC_KEY);
 
@@ -30,10 +32,6 @@ const shopModel = require('../models/shop');
 
 //Define email Regex
 const emailRegex = /^(?=[^@]*[A-Za-z])([a-zA-Z0-9])(([a-zA-Z0-9])*([\._-])?([a-zA-Z0-9]))*@(([a-zA-Z0-9\-])+(\.))+([a-zA-Z]{2,4})+$/i;
-
-//Name Regex
-
-const nameRegex = /^(([A-Za-z]+[\-\']?)*([A-Za-z]+)?\s)+([A-Za-z]+[\-\']?)*([A-Za-z]+)?$/;
 
 //Password Regex to make sure only ASCII characters are accepted
 
@@ -71,7 +69,7 @@ router.route('/shops/:shopId').put(getToken, (req, res) => {
 
 /*
  **
- **     GENERIC FUNCTIONS SECTION
+ **     TOOLS AND FUNCTIONS SECTION
  **
  */
 
@@ -86,17 +84,17 @@ function signupUser(req, res) {
 	let user = req.body;
 	//Validate email, name and password
 	if (
-		!emailRegex.test(user.email) ||
-		!nameRegex.test(user.name) ||
-		!passwordRegex.test(user.password)
+		emailRegex.test(user.email) &&
+		user.name &&
+		passwordRegex.test(user.password)
 	) {
-		errorHandler(res, 'invalid user data', 'invalid user data', 422);
-	} else {
 		//Define empty array attributes for liked and disliked shops
 		user.likes = [];
 		user.dislikes = [];
 		//Hash and salt password
 		hashAndSalt(user, res);
+	} else {
+		errorHandler(res, 'invalid user data', 'invalid user data', 400);
 	}
 }
 
@@ -111,12 +109,7 @@ function hashAndSalt(user, res) {
 			//persist new User in DB
 			persistUser(newUser, res);
 		} else {
-			errorHandler(
-				res,
-				'there was a server internal error',
-				'hashing issue',
-				500
-			);
+			errorHandler(res, 'Internal server error', 'hashing issue', 500);
 		}
 	});
 }
@@ -129,7 +122,7 @@ function persistUser(newUser, res) {
 		if (!err) {
 			generateToken(res, doc, 201);
 		} else {
-			errorHandler(res, err.message, 'Failed to create new User.', 422);
+			errorHandler(res, 'Failed to create this User.', err.message, 409);
 		}
 	});
 }
@@ -137,14 +130,13 @@ function persistUser(newUser, res) {
 //Attempt to login user if password is verified
 function loginUser(req, res) {
 	if (
-		emailRegex.test(req.body.email) ||
+		emailRegex.test(req.body.email) &&
 		passwordRegex.test(req.body.password)
 	) {
 		//Retrieve User password from database
 		userModel.retrieveUser(req.body.email, (dbErr, doc) => {
-			doc = doc[0];
-			if (!dbErr && doc) {
-				verifyPassword(req, res, doc);
+			if (!dbErr && doc[0]) {
+				verifyPassword(req, res, doc[0]);
 			} else {
 				//unexistent email error
 				errorHandler(
@@ -158,9 +150,9 @@ function loginUser(req, res) {
 	} else {
 		errorHandler(
 			res,
-			'Email or password are in an invalid formt',
+			'Email or password are in an invalid format',
 			'invalid data',
-			422
+			400
 		);
 	}
 }
@@ -224,7 +216,7 @@ function getToken(req, res, next) {
 			res,
 			'unauthorized access',
 			'No Authorization header',
-			403
+			401
 		);
 	}
 }
@@ -241,7 +233,7 @@ function verifyToken(req, res, callback) {
 				callback(payload, req, res);
 			} else {
 				//unauthorized access
-				errorHandler(res, 'Unauthorized request', tokenErr, 403);
+				errorHandler(res, 'Unauthorized request', tokenErr, 401);
 			}
 		}
 	);
@@ -251,16 +243,11 @@ function verifyToken(req, res, callback) {
 function getUserShops(payload, req, res) {
 	//retrieve User by Id from DB
 	userModel.retrieveUserById(payload._id, (err, doc) => {
-		if (!err) {
-			if (doc) {
-				returnPayload(doc, req, res);
-			} else {
-				//error for doc not found
-				res.sendStatus(404);
-			}
+		if (!err && doc) {
+			returnPayload(doc, req, res);
 		} else {
 			//DB error
-			errorHandler(res, 'internal server error', err, 500);
+			errorHandler(res, "can't connect to DB", err, 200);
 		}
 	});
 }
@@ -271,14 +258,12 @@ function returnPayload(doc, req, res) {
 		//Retrieve Shops by Ids
 		shopModel.retrieveShopsByIds(doc.likes, (err, docs) => {
 			if (err) {
-				errorHandler(res, 'internal server error', err, 500);
+				errorHandler(res, "can't connect to DB", err, 200);
+			} else if (docs.length === 0) {
+				res.sendStatus(204);
 			} else {
-				if (docs.length === 0) {
-					res.sendStatus(204);
-				} else {
-					//Return payload containing prefered shops
-					res.status(200).json(docs);
-				}
+				//Return payload containing prefered shops
+				res.status(200).json(docs);
 			}
 		});
 	} else {
@@ -295,19 +280,14 @@ function updateShopPreference(payload, req, res) {
 	//like or dislike Shop
 	userModel.likeOrDislikeShop(payload._id, req, (err, doc) => {
 		if (!err) {
-			if (doc) {
-				//return a payload containing updated user's likes and dislikes
-				res.status(200).json({
-					likes: doc.likes,
-					dislikes: doc.dislikes,
-				});
-			} else {
-				//error for doc not found
-				res.sendStatus(404);
-			}
+			//return a payload containing updated user's likes and dislikes
+			res.status(200).json({
+				likes: doc.likes,
+				dislikes: doc.dislikes,
+			});
 		} else {
-			//DB error
-			errorHandler(res, 'internal server error', err, 500);
+			//Shop Id doesn't exist
+			errorHandler(res, 'Shop not found', err, 404);
 		}
 	});
 }
